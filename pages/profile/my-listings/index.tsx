@@ -4,13 +4,13 @@ import MyListingsTable from "@/components/tables/listings/MyListingsTable";
 import { NextPageWithLayout } from "@/pages/page";
 import prisma from "@/utils/prisma";
 import { requireAuthentication } from "@/utils/requireAuthentication";
-import { Image, Listing, Message } from "@prisma/client";
+import { Listing, Message } from "@prisma/client";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 
 interface IMyListingsPageProps {
   listingsWithImages: (Pick<Listing, "id" | "name" | "price" | "views"> & {
-    images: Image[];
+    images: string[];
     messages: Pick<Message, "id">[];
   })[];
 }
@@ -22,7 +22,7 @@ export const getServerSideProps: GetServerSideProps = async (context: any) => {
       Listing,
       "id" | "name" | "price" | "views"
     > & {
-      images: Image[];
+      images: string[];
       messages: Pick<Message, "id">[];
     })[] = await prisma.listing.findMany({
       where: {
@@ -33,9 +33,7 @@ export const getServerSideProps: GetServerSideProps = async (context: any) => {
         name: true,
         price: true,
         views: true,
-        images: {
-          take: 1,
-        },
+        images: true,
         messages: {
           select: {
             id: true,
