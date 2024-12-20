@@ -1,14 +1,12 @@
 import ListingCard from "@/components/cards/listing/ListingCard";
 import PrimaryLayout from "@/components/layout/primary/PrimaryLayout";
 import { Button, Skeleton } from "@mantine/core";
-import { Image as PrismaImage, Listing as PrismaListing } from "@prisma/client";
+import { Listing as PrismaListing } from "@prisma/client";
 import { signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { NextPageWithLayout } from "./page";
 
-interface Image extends PrismaImage {}
 interface Listing extends PrismaListing {
-  images: Image[];
 }
 
 const Home: NextPageWithLayout = () => {
@@ -19,8 +17,9 @@ const Home: NextPageWithLayout = () => {
   useEffect(() => {
     const fetchAndSetRecentListings = async () => {
       try {
-        const response = await fetch("/api/listings/recent");
+        const response = await fetch("/api/listings/recent");        
         const data = await response.json();
+        console.log("data", data);
         setRecentListings(data);
       } catch (error) {
         console.error("Error fetching recent listings:", error);
@@ -98,7 +97,7 @@ const Home: NextPageWithLayout = () => {
               <ListingCard
                 key={index}
                 listingId={listing.id}
-                images={listing.images.map((image) => image.url)}
+                images={listing.images}
                 title={listing.name}
                 description={listing.description || ""}
                 price={listing.price || 0}

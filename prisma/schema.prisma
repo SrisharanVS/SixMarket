@@ -22,7 +22,7 @@ model Listing {
   condition   Condition  @default(NEW)
   reported    Boolean    @default(false)
   price       Int? // Some items may not have a price, e.g. free items
-  images      Image[]
+  images      String[]
   location    String
   tags        Tag[]
   views       Int        @default(0)
@@ -42,14 +42,6 @@ model Tag {
   listings Listing[]
 }
 
-model Image {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  url       String   @db.VarChar(2083)
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  listingId String
-}
 
 model Category {
   id           String    @id @default(cuid())

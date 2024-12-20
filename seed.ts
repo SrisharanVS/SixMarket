@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log("Initiated seeding");
-
+  await prisma.category.deleteMany();
   const categories = [
     {
       name: "Services",

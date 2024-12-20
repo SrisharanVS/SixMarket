@@ -34,6 +34,7 @@ module.exports = {
 module.exports = {
   images: {
     domains: [
+      "sixmarket.s3.eu-north-1.amazonaws.com",
       "i.pravatar.cc",
       "images.pexels.com",
       "cdn.pixabay.com",

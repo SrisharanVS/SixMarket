@@ -97,10 +97,123 @@ const NewListing: NextPageWithLayout = () => {
       categoryId: "clgu9tb1p000wr9tjldwfwm3s",
     },
   });
-
-  const handleSubmit = async (values: any) => {
-    console.log(values);
+  type FileMetadata = {
+    fileName: string;
+    fileType: string;
   };
+  
+  type PresignedUrlResponse = {
+    uploadUrl: string;
+    key: string;
+  };
+  const getPresignedUrls = async (files: File[]): Promise<PresignedUrlResponse[] | null>  => {
+    try {
+      // Extract file metadata (name and type)
+      const fileMetadata = files.map((file) => ({
+        fileName: file.name,
+        fileType: file.type,
+      }));
+  
+      console.log("Sending file metadata to backend:", fileMetadata);
+  
+      const response = await fetch("/api/aws/getPresignedUrl", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ files: fileMetadata }), // Send metadata to the backend
+      });
+  
+      console.log(response);
+  
+      if (!response.ok) {
+        throw new Error("Failed to get presigned URLs");
+      }
+  
+      const { urls } = await response.json();
+      console.log("Received presigned URLs:", urls);
+  
+      return urls; // [{ uploadUrl, key }, ...]
+    } catch (error) {
+      console.error("Error fetching presigned URLs:", error);
+      return null;
+    }
+  };
+  
+  const uploadFilesToS3 = async (files: File[]): Promise<String[]> => {
+  console.log("from S3", files);
+  const urls = await getPresignedUrls(files);
+  console.log("urls");
+  console.log(urls);
+  const publicKeys = [];
+  if (!urls) {
+    alert("Failed to generate upload URLs");
+    return [];
+  }
+
+  for (let index = 0; index < files.length; index++) {
+    const file = files[index];
+    const url = urls[index].uploadUrl;
+    const key = urls[index].key;
+    console.log("Uploading file:", file.name);  // Log each file being uploaded
+    console.log(file.type);
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (!response.ok) {
+        console.error("Failed to upload file:", file.name, response.statusText);
+        throw new Error(`Failed to upload file: ${file.name}`);
+      }
+      publicKeys.push(key);
+      console.log("Upload successful:", file.name);  // Log successful upload
+    } catch (error) {
+      console.error("Error uploading file:", file.name, error);
+      alert(`File upload failed for: ${file.name}`);
+      break; // Stop the loop if a file upload fails
+    }
+    
+  }
+  return publicKeys;
+  // alert("All files uploaded successfully!");
+};
+
+const handleSubmit = async (values: IFormValues) => {
+  const files = form.values.files;
+  const publicKeys = await uploadFilesToS3(files); // Upload files to S3 and get URLs
+
+  const listingData = {
+    name: values.name,
+    description: values.description,
+    condition: values.condition,
+    price: isFree ? 0 : values.price,
+    location: values.province,
+    tags: values.tags,
+    canDeliver: values.canDeliver === "yes",
+    categoryId: values.categoryId,
+    images: publicKeys, // Ensure images array is populated
+  };
+
+  try {
+    const response = await axios.post("/api/listings/createNewListing", listingData);
+    if (response.status === 201) {
+      console.log("Listing created successfully:", response.data);
+      alert("Your listing was created successfully!");
+      form.reset(); // Reset form after success
+    } else {
+      console.error("Unexpected response:", response);
+      alert("Something went wrong. Please try again.");
+    }
+  } catch (error: any) {
+    console.error("Error creating listing:", error);
+    alert("There was an error creating your listing. Please check the input and try again.");
+  }
+};
 
   return (
     <>
@@ -125,10 +238,12 @@ const NewListing: NextPageWithLayout = () => {
         description="Complete the steps below to create a new listing."
       />
 
-      <form onSubmit={form.onSubmit((values) => console.log(values))}>
+      <form onSubmit={form.onSubmit((values) => handleSubmit(values))}>
         <Dropzone
-          onDrop={(images) => {
-            form.setFieldValue("files", images);
+          onDrop = { async (files) => {
+            form.setFieldValue("files", files);
+            // console.log("from dropzone", files);
+            // await uploadFilesToS3(files);
           }}
           onReject={(images) => console.log("rejected files", images)}
           maxSize={3 * 1024 ** 2}
@@ -268,8 +383,7 @@ const NewListing: NextPageWithLayout = () => {
           onSearchChange={onSearchChange}
           nothingFound="Nothing found"
         />
-
-        <Button type="submit" mt="md" onClick={() => handleSubmit}>
+        <Button type="submit" mt="md">
           Submit
         </Button>
       </form>

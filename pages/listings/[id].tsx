@@ -6,7 +6,6 @@ import { Avatar, Tooltip, UnstyledButton } from "@mantine/core";
 import {
   Category,
   Favorite,
-  Image as ImageFromSchema,
   Listing,
   Message,
   Tag,
@@ -23,7 +22,7 @@ import { useState } from "react";
 import { NextPageWithLayout } from "../page";
 
 export interface ListingWithAllInfo extends Listing {
-  images: ImageFromSchema[];
+  images: string[];
   user: User;
   category: Category;
   favorites: Favorite[];
@@ -143,7 +142,7 @@ const IndividualListing: NextPageWithLayout<IndividualListingProps> = ({
           property="og:description"
           content={`${listingInfo?.description || ""}`}
         />
-        <meta property="og:image" content={listingInfo.images[0].url} />
+        {/* <meta property="og:image" content={listingInfo.images[0].url} /> */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Marketplace" />
       </Head>
@@ -203,11 +202,11 @@ const IndividualListing: NextPageWithLayout<IndividualListingProps> = ({
           loop
           className="md:col-span-6 lg:col-span-8"
         >
-          {listingInfo?.images.map((image: ImageFromSchema, index: number) => (
+          {listingInfo?.images.map((imageUrl: string, index: number) => (
             <Carousel.Slide key={index} bg={"#f3f3f3"}>
               <Image
-                src={image.url}
-                alt="d"
+                src={imageUrl} // Now directly using the URL string
+                alt={`Listing image ${index + 1}`}
                 className="w-full h-full object-contain"
                 fill
               />
@@ -226,6 +225,7 @@ const IndividualListing: NextPageWithLayout<IndividualListingProps> = ({
     </>
   );
 };
+
 
 export default IndividualListing;
 
