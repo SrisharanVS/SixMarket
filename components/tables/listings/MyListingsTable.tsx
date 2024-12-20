@@ -3,14 +3,14 @@ import { DataTable, DataTableSortStatus } from "mantine-datatable";
 import { Box, Button, Stack } from "@mantine/core";
 import { IconMoodSad } from "@tabler/icons-react";
 import { Listing, Message } from "@prisma/client";
-import { Image as PrismaImage } from ".prisma/client";
+// import { Image as PrismaImage } from ".prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import sortBy from "lodash/sortBy";
 
 interface IMyListingsTable {
   listingsWithImages: (Pick<Listing, "id" | "name" | "price" | "views"> & {
-    images: PrismaImage[];
+    images: string[];
     messages: Pick<Message, "id">[];
   })[];
 }
@@ -22,7 +22,7 @@ const MyListingsTable: FC<IMyListingsTable> = ({ listingsWithImages }) => {
   });
 
   const listings = listingsWithImages.map((listing) => {
-    const thumbnailUrl = listing.images[0].url;
+    const thumbnailUrl = listing.images[0];
     const title = listing.name;
     const price = listing.price;
     const views = listing.views;
