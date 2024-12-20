@@ -21,7 +21,6 @@ async function getListingsByCategoryId(categoryId: string) {
       categoryId: categoryId,
     },
     include: {
-      images: true,
       tags: true,
       favorites: true,
     },
